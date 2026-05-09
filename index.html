@@ -1,0 +1,202 @@
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FGCK Bongo Youth Welfare Cloud System</title><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"><style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins;}
+body{
+  background: radial-gradient(circle at top,#1e3a8a,#0f172a,#020617);
+  color:white;
+  padding:20px;
+}
+header{
+  text-align:center;
+  padding:20px;
+  background:linear-gradient(135deg,#22c55e,#3b82f6);
+  border-radius:15px;
+  margin-bottom:20px;
+}
+.main{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  max-width:1200px;
+  margin:auto;
+}
+.card{
+  background:rgba(255,255,255,0.08);
+  backdrop-filter:blur(16px);
+  border-radius:18px;
+  padding:20px;
+}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+}
+textarea{min-height:80px;}
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+}
+.primary{background:#22c55e;color:white;}
+.secondary{background:#3b82f6;color:white;}
+.purple{background:#8b5cf6;color:white;}
+.danger{background:#ef4444;color:white;}
+
+.table-wrap{overflow:auto;}
+table{
+  width:100%;
+  margin-top:15px;
+  background:white;
+  color:black;
+  border-radius:10px;
+}
+th{background:#0f172a;color:white;padding:10px;}
+td{padding:10px;border-bottom:1px solid #eee;}
+
+#qrBox{
+  background:white;
+  padding:10px;
+  margin-top:10px;
+  display:flex;
+  justify-content:center;
+  border-radius:10px;
+}
+
+footer{
+  text-align:center;
+  margin-top:30px;
+  padding:15px;
+  background:linear-gradient(135deg,#22c55e,#3b82f6);
+  border-radius:12px;
+}
+</style></head><body><header>
+<h1>FGCK Bongo Youth Welfare</h1>
+<p>Smart Cloud System with Notifications, Receipts & Memo Generator</p>
+</header><div class="main"><div class="card">
+<h2>Treasurer Login</h2>
+<input type="password" id="pass" placeholder="Enter password">
+<button class="primary" onclick="login()">Login</button><div id="panel" style="display:none;"><h3>Add Contribution</h3>
+<input id="name" placeholder="Member name">
+<input id="phone" placeholder="Phone number">
+<input id="email" placeholder="Email">
+<input id="amount" type="number" placeholder="Amount">
+<select id="method">
+<option>M-Pesa</option>
+<option>Cash</option>
+</select><button class="primary" onclick="add()">Save</button> <button class="secondary" onclick="sendNotifications()">Send SMS & Email</button> <button class="secondary" onclick="generateReceipt()">Receipt</button>
+
+<hr style="margin:15px 0;opacity:0.3;"><h3>📄 Memo Generator</h3>
+<input id="memoTitle" placeholder="Memo title">
+<textarea id="memoMessage" placeholder="Write your custom memo message..."></textarea>
+<button class="purple" onclick="generateMemo()">Generate Memo PDF</button><div id="qrBox"></div>
+</div>
+</div><div class="card">
+<h2>Live Records</h2>
+<table>
+<thead><tr><th>Name</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
+<tbody id="tb"></tbody>
+</table>
+</div></div><footer>
+FGCK Bongo Youths Welfare Department • Official System
+</footer><script>
+let auth=false;
+let current=null;
+
+function login(){
+if(document.getElementById('pass').value==='fgck'){
+auth=true;
+document.getElementById('panel').style.display='block';
+}else alert('Wrong password');
+}
+
+function add(){
+if(!auth)return;
+current={
+name:document.getElementById('name').value,
+phone:document.getElementById('phone').value,
+email:document.getElementById('email').value,
+amount:document.getElementById('amount').value,
+method:document.getElementById('method').value,
+date:new Date().toLocaleString()
+};
+alert('Saved');
+}
+
+function sendNotifications(){
+if(!auth||!current)return;
+let first=current.name.split(' ')[0];
+let sms=`Dear ${first}, your contribution of KES ${current.amount} has been received under FGCK.`;
+let email=`Dear ${first},\nWe confirm receipt of KES ${current.amount}.`;
+alert(sms);
+alert(email);
+}
+
+function generateReceipt(){
+if(!auth)return;
+const { jsPDF }=window.jspdf;
+let doc=new jsPDF();
+let first=current.name.split(' ')[0];
+
+doc.setFillColor(34,197,94);
+doc.rect(0,0,210,35,'F');
+
+doc.setTextColor(255,255,255);
+doc.text("FGCK RECEIPT",15,20);
+
+doc.setTextColor(0,0,0);
+doc.text("Dear "+first,15,55);
+doc.text("Amount: KES "+current.amount,15,70);
+
+doc.text("Treasurer Signature",15,130);
+doc.text("Patron Signature",120,130);
+
+doc.text("FGCK Bongo Youth Welfare Department",15,280);
+
+doc.save("receipt.pdf");
+}
+
+function generateMemo(){
+if(!auth)return;
+const { jsPDF }=window.jspdf;
+let doc=new jsPDF();
+
+let title=document.getElementById('memoTitle').value||"Official Memo";
+let msg=document.getElementById('memoMessage').value||"No message";
+
+// header
+doc.setFillColor(30,58,138);
+doc.rect(0,0,210,40,'F');
+
+doc.setTextColor(255,255,255);
+doc.text("FGCK BONGO YOUTH WELFARE",15,18);
+doc.text(title,15,30);
+
+// body
+doc.setTextColor(0,0,0);
+let lines=doc.splitTextToSize(msg,180);
+doc.text(lines,15,60);
+
+// signatures
+let y=240;
+doc.line(20,y,80,y);
+doc.line(120,y,180,y);
+doc.text("Secretary",20,y+10);
+doc.text("Patron",120,y+10);
+
+// footer
+doc.setFontSize(10);
+doc.setTextColor(100);
+doc.text("FGCK Bongo Youth Welfare Department",15,280);
+
+doc.save(title.replace(/\s+/g,"_")+".pdf");
+}
+</script></body>
+</html>
